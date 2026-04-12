@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Watch — Talking Points for Adi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0F0E0C;
+  --bg-elevated: #1A1816;
+  --bg-card: #222019;
+  --text: #E8E2D6;
+  --text-secondary: #A09888;
+  --text-muted: #6B6058;
+  --accent: #DD5522;
+  --accent-soft: rgba(221, 85, 34, 0.15);
+  --green: #3D9970;
+  --green-soft: rgba(61, 153, 112, 0.15);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-accent: rgba(221, 85, 34, 0.25);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Password gate */
+#password-gate {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 24px;
+}
+#password-gate.hidden { display: none; }
+#password-gate h2 {
+  font-family: 'Fraunces', serif;
+  font-weight: 400; font-size: 24px;
+  color: var(--text-secondary);
+}
+#password-gate input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  width: 240px; text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#password-gate input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+#password-gate .error { color: var(--accent); font-size: 14px; height: 20px; }
+
+#content { opacity: 0; transition: opacity 0.6s ease; }
+#content.visible { opacity: 1; }
+
+/* Layout */
+.container { max-width: 680px; margin: 0 auto; padding: 0 32px; }
+
+/* Header */
+header {
+  padding: 80px 0 48px;
+  border-bottom: 1px solid var(--border);
+}
+header .overline {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 20px;
+}
+header h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 400; font-size: 36px;
+  line-height: 1.25; color: var(--text);
+  margin-bottom: 12px;
+}
+header .subtitle {
+  font-size: 16px; color: var(--text-secondary);
+  font-weight: 400; line-height: 1.6;
+}
+header .date {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; color: var(--text-muted);
+  margin-top: 20px;
+}
+
+/* Sections */
+section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+section:last-of-type { border-bottom: none; }
+
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 20px;
+}
+
+h2 {
+  font-family: 'Fraunces', serif;
+  font-weight: 400; font-size: 24px;
+  line-height: 1.3; margin-bottom: 16px;
+}
+
+p { margin-bottom: 14px; color: var(--text-secondary); }
+p:last-child { margin-bottom: 0; }
+strong { color: var(--text); font-weight: 500; }
+
+/* Talk track callout */
+.talk-track {
+  background: var(--bg-card);
+  border-left: 3px solid var(--accent);
+  padding: 20px 24px;
+  border-radius: 0 10px 10px 0;
+  margin: 20px 0;
+}
+.talk-track p {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.7;
+  font-style: italic;
+}
+.talk-track .label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  font-style: normal;
+  margin-bottom: 8px;
+}
+
+/* Expect list */
+.expect-list {
+  list-style: none;
+  margin: 20px 0;
+}
+.expect-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: baseline; gap: 12px;
+  color: var(--text-secondary); font-size: 15px;
+}
+.expect-list li:last-child { border-bottom: none; }
+.expect-list .marker {
+  color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; flex-shrink: 0;
+}
+
+/* Close box */
+.close-box {
+  background: var(--accent-soft);
+  border: 1px solid var(--border-accent);
+  border-radius: 12px;
+  padding: 28px 32px;
+  margin-top: 8px;
+}
+.close-box p {
+  font-size: 17px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* Note */
+.note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Footer */
+footer {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Links */
+a.link-accent {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+a.link-accent:hover,
+a.link-accent:focus-visible {
+  color: var(--text);
+}
+
+/* Close-box spacing */
+.close-box .mt { margin-top: 16px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  header h1 { font-size: 28px; }
+  .container { padding: 0 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Password Gate -->
+<div id="password-gate">
+  <h2>This document is password protected</h2>
+  <input type="password" id="pw-input" placeholder="Enter password" autofocus>
+  <div class="error" id="pw-error"></div>
+</div>
+
+<div id="content">
+
+<header>
+  <div class="container">
+    <div class="overline">For Adi</div>
+    <h1>Market Watch<br>Talking Points</h1>
+    <div class="subtitle">Reference doc for walking Jamie and Hugo through the outbound system Travis built. Not a script to read verbatim. Use the framing that feels natural, adapt the language, skip what you already covered.</div>
+    <div class="date">April 12, 2026</div>
+  </div>
+</header>
+
+<!-- What Travis built -->
+<section>
+  <div class="container">
+    <div class="section-label">What Travis built</div>
+    <h2>The short version</h2>
+    <p>Travis built an automated system that monitors 646 fintech lending companies every day for signs they might need what Peach offers. When the system spots something, like a company hiring lending engineers, raising money, or launching a new product, it automatically finds the right people to contact, writes personalized emails that reference the specific event, verifies every email address, and loads everything into SmartLead for Hugo to review.</p>
+    <p>No manual research. No generic templates. Every outreach is triggered by a real event and personalized to it.</p>
+
+    <div class="talk-track">
+      <div class="label">Suggested framing</div>
+      <p>"Travis built a system that watches our entire TAM for buying signals. When something happens at a company, like a key hire or a product launch, the system catches it and generates personalized outreach automatically. Hugo reviews and sends. It ran a live test today. I'll show you the results."</p>
+    </div>
+  </div>
+</section>
+
+<!-- What it replaces -->
+<section>
+  <div class="container">
+    <div class="section-label">What it replaces</div>
+    <h2>The before and after</h2>
+    <p>Right now, outbound is manual. Someone has to research companies, decide who to target, figure out the angle, write the email, find the contact info. That takes hours per company and the timing is mostly luck. You might reach out the week before something happens, or six months after.</p>
+    <p>This system flips that. Instead of guessing who to contact and when, it watches for the moment a company starts showing buying signals and reaches out while the signal is fresh. The research, the personalization, the contact finding, all of that happens automatically.</p>
+
+    <div class="talk-track">
+      <div class="label">Suggested framing</div>
+      <p>"The biggest problem with our current outbound isn't the copy or the list. It's timing. We're reaching out to companies based on when we get around to it, not based on when they're actually in-market. This system solves the timing problem."</p>
+    </div>
+  </div>
+</section>
+
+<!-- What changes for Hugo -->
+<section>
+  <div class="container">
+    <div class="section-label">What changes for Hugo</div>
+    <h2>His expertise matters more, not less</h2>
+    <p>Hugo stops doing research and starts doing sales. Instead of spending time figuring out who to call and why, he opens SmartLead and sees contacts who are already there because something real happened at their company. The email is written. The signal is referenced. His job is to review the outreach, apply his judgment about the relationship, and decide when to engage.</p>
+    <p>The system handles the groundwork so Hugo can focus on the conversations that actually close deals. Nothing sends without his review.</p>
+
+    <div class="talk-track">
+      <div class="label">Suggested framing for Hugo</div>
+      <p>"This isn't about replacing what you do. It's about giving you better ammunition. Right now you're spending time on research that could be automated. This gives you that time back and makes sure you're reaching out at the exact right moment, with a reason to call."</p>
+    </div>
+
+    <div class="talk-track">
+      <div class="label">Suggested framing for Jamie</div>
+      <p>"The system ran a live test today. 8 companies, 14 real signals detected, 10 verified contacts, 40 personalized emails. Every factual claim in every email traced back to source data. Zero fabricated. 180 automated tests. Travis can walk you through the architecture if you want to see how the pipeline works."</p>
+    </div>
+
+    <p class="note">Jamie is an engineer. He'll want to know how it works, not just that it works. The proof doc (<a href="https://tross444.github.io/peach-deliverables/" class="link-accent">tross444.github.io/peach-deliverables</a>, pw: peach2026) has a full pipeline breakdown he can explore. Point him there if he wants the technical detail.</p>
+  </div>
+</section>
+
+<!-- What to expect -->
+<section>
+  <div class="container">
+    <div class="section-label">What to expect</div>
+    <h2>The timeline</h2>
+
+    <ul class="expect-list">
+      <li><span class="marker">Apr 17</span> API credits reset. Daily monitoring starts. The system goes live.</li>
+      <li><span class="marker">Daily</span> 646 companies scanned in rotation. Full TAM covered every 5 days.</li>
+      <li><span class="marker">Ongoing</span> When a signal fires, the pipeline runs: find contacts, write emails, verify, load into SmartLead.</li>
+      <li><span class="marker">Hugo</span> Reviews everything before it sends. Nothing goes out without his approval.</li>
+      <li><span class="marker">Next</span> This is Play 1 (fintech lenders). Three more plays are designed: banks and credit unions, Salesforce CRM accounts, and website visitors. Those surface signals to Hugo via Slack.</li>
+    </ul>
+
+    <p>The current outbound campaigns keep running in the meantime. This doesn't interrupt anything. It replaces what comes next.</p>
+  </div>
+</section>
+
+<!-- The question -->
+<section>
+  <div class="container">
+    <div class="section-label">The question</div>
+
+    <div class="close-box">
+      <p>This isn't a proposal. The system is already built and tested. It ran today against real companies and produced real outreach with real signals, real contacts, and real personalized emails.</p>
+      <p class="mt"><strong>Should we activate this on April 17?</strong></p>
+    </div>
+
+    <div class="talk-track" style="margin-top: 24px;">
+      <div class="label">Suggested close</div>
+      <p>"Travis isn't asking permission to build something. He already built it and tested it. The question is whether we flip the switch on the 17th. I think we should."</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    Prepared for Adi Johnson. April 2026.
+  </div>
+</footer>
+
+</div>
+
+<script>
+const gate = document.getElementById('password-gate');
+const input = document.getElementById('pw-input');
+const error = document.getElementById('pw-error');
+const content = document.getElementById('content');
+
+input.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    if (input.value === 'peach2026') {
+      gate.classList.add('hidden');
+      content.classList.add('visible');
+    } else {
+      error.textContent = 'Incorrect password';
+      input.value = '';
+      input.focus();
+    }
+  }
+});
+</script>
+
+</body>
+</html>

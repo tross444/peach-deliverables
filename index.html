@@ -304,6 +304,90 @@ strong { color: var(--text); font-weight: 500; }
 .badge-auto { background: var(--green-soft); color: var(--green); }
 .badge-hugo { background: var(--blue-soft); color: var(--blue); }
 
+/* Pipeline flow */
+.pipeline-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+  padding: 24px 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 28px 0;
+}
+.pipeline-flow .step,
+.pipeline-flow .step-highlight {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+}
+.pipeline-flow .step-highlight {
+  background: var(--accent-soft);
+  color: var(--text);
+  border: 1px solid var(--border-accent);
+}
+.pipeline-flow .arr {
+  color: var(--accent);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+}
+
+/* Comparison grid */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 28px 0;
+}
+.comparison .panel {
+  background: var(--bg-card);
+  padding: 28px;
+}
+.comparison .panel-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+.comparison .panel-label.before-label { color: var(--text-muted); }
+.comparison .panel-label.after-label { color: var(--green); }
+.comparison ul { list-style: none; }
+.comparison li {
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.comparison li:last-child { border-bottom: none; }
+
+/* Activation close */
+.activation-close {
+  background: var(--accent-soft);
+  border: 1px solid var(--border-accent);
+  border-radius: 12px;
+  padding: 28px 32px;
+  margin-top: 32px;
+}
+.activation-close p {
+  font-size: 17px;
+  color: var(--text);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.text-note {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
 /* Activation section */
 .activation-list {
   list-style: none; margin: 24px 0;
@@ -340,6 +424,8 @@ footer .brand {
   header h1 { font-size: 32px; }
   .stats-bar { grid-template-columns: repeat(2, 1fr); }
   .email-header-bar { flex-direction: column; gap: 8px; }
+  .comparison { grid-template-columns: 1fr; }
+  .pipeline-flow { padding: 16px; }
 }
 </style>
 </head>
@@ -508,7 +594,82 @@ footer .brand {
       </div>
     </div>
 
-    <p style="font-size: 14px; color: var(--text-muted);">84 words. Opens with the signal. Proof point references a real Peach customer (Tilt). Ends with a soft close, no hard ask. This is the first email of a 4-email sequence.</p>
+    <p class="text-note">84 words. Opens with the signal. Proof point references a real Peach customer (Tilt). Ends with a soft close, no hard ask. This is the first email of a 4-email sequence.</p>
+  </div>
+</section>
+
+<!-- What changes day-to-day (Hugo) -->
+<section>
+  <div class="container">
+    <div class="section-label">What changes day-to-day</div>
+    <h2>Hugo stops researching. Starts selling.</h2>
+    <p>Right now, outreach starts with manual research. Who should we target? What's happening at their company? Who's the right person? What's the angle? That work takes hours per company, and the timing depends on luck.</p>
+    <p>With Market Watch, that front-end disappears. Hugo opens SmartLead and sees contacts who are there because <strong>something real happened at their company this week</strong>. The signal is in the email. The research is done. The copy is personalized to the specific event that triggered it.</p>
+    <p><strong>Hugo's job shifts from finding opportunities to working them.</strong> He reviews the outreach, adds his relationship knowledge, decides when to press or hold back. His domain expertise gets amplified, not replaced.</p>
+  </div>
+</section>
+
+<!-- Under the hood (Jamie) -->
+<section>
+  <div class="container">
+    <div class="section-label">Under the hood</div>
+    <h2>The pipeline, end to end</h2>
+
+    <div class="pipeline-flow">
+      <span class="step">Market Watch</span>
+      <span class="arr">&rarr;</span>
+      <span class="step-highlight">14 signals at 5 companies</span>
+      <span class="arr">&rarr;</span>
+      <span class="step">Contact Forge</span>
+      <span class="arr">&rarr;</span>
+      <span class="step">ICP filter</span>
+      <span class="arr">&rarr;</span>
+      <span class="step-highlight">10 verified contacts</span>
+      <span class="arr">&rarr;</span>
+      <span class="step">Message Mill</span>
+      <span class="arr">&rarr;</span>
+      <span class="step-highlight">40 emails, 0 fabricated</span>
+      <span class="arr">&rarr;</span>
+      <span class="step">SmartLead</span>
+    </div>
+
+    <p>Each step runs daily on a Linux server. No human intervention after initial setup. 180 automated tests cover the pipeline end-to-end.</p>
+    <p><strong>Data integrity is the hard part, and we built for it.</strong> Every factual claim in every email traces back to source data. The PredictLeads signal that triggered outreach, the approved proof pool it references, or the enrichment record it cites. Today's test: 19 claims traced, zero fabricated. The generation system doesn't invent facts. It references them.</p>
+    <p>There's also a freshness filter. Signal APIs sometimes index old events with new dates. The system parses actual event dates from signal text and drops anything older than 90 days. Today's test caught and removed one stale signal before any email was written.</p>
+    <p class="text-note">Monthly run cost: ~$239 in API fees (signal detection, enrichment, AI generation, email verification). No manual research time.</p>
+  </div>
+</section>
+
+<!-- What this replaces (Adi) -->
+<section>
+  <div class="container">
+    <div class="section-label">What this replaces</div>
+    <h2>From guesswork to system</h2>
+
+    <div class="comparison">
+      <div class="panel">
+        <div class="panel-label before-label">Before</div>
+        <ul>
+          <li>Manual company research</li>
+          <li>Generic outreach templates</li>
+          <li>Timing depends on luck</li>
+          <li>Hugo does research AND selling</li>
+          <li>Volume limited by research hours</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <div class="panel-label after-label">After</div>
+        <ul>
+          <li>646 companies monitored daily</li>
+          <li>Every email references a real current event</li>
+          <li>Outreach triggered by buying signals</li>
+          <li>Hugo focuses on conversations</li>
+          <li>Volume limited by market activity, not headcount</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>The current outbound campaigns keep running until Play 1 is live. This doesn't interrupt anything in progress. It replaces what comes next.</p>
   </div>
 </section>
 
@@ -516,7 +677,7 @@ footer .brand {
 <section>
   <div class="container">
     <div class="section-label">What happens on April 17</div>
-    <h2>Daily monitoring goes live</h2>
+    <h2>Ready to activate</h2>
     <p>Today's test used 8 companies. On April 17, the system scales to the full 646-company TAM with daily automated runs.</p>
 
     <ul class="activation-list">
@@ -525,6 +686,10 @@ footer .brand {
       <li><span class="arrow">&rarr;</span> Signal-triggered companies flow through the pipeline automatically. No manual research.</li>
       <li><span class="arrow">&rarr;</span> Hugo reviews personalized outreach in SmartLead and activates sends.</li>
     </ul>
+
+    <div class="activation-close">
+      <p>The system already works. Today proved that. The question isn't whether to build it. It's whether to turn it on.</p>
+    </div>
   </div>
 </section>
 
