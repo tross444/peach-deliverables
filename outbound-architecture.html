@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1400">
+<title>Peach Outbound Architecture — Pull System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface-primary: #FAF8F3;
+    --surface-secondary: #F2EEE3;
+    --surface-card: #FFFFFF;
+    --text-primary: #1A1613;
+    --text-secondary: #6B5E52;
+    --text-muted: #A89A8A;
+    --accent-peach: #DD5522;
+    --accent-peach-soft: #FBE4D4;
+    --accent-peach-border: #F0BC9C;
+    --accent-slate: #2D4458;
+    --accent-slate-soft: #E0E8EF;
+    --accent-slate-border: #B0C1D1;
+    --border: #E3DCCC;
+    --border-strong: #D0C5AF;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: #EDE6D6;
+    color: var(--text-primary);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'ss01' 1;
+    padding: 40px 20px;
+  }
+
+  .diagram {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 72px 80px 60px;
+    background: var(--surface-primary);
+    position: relative;
+    box-shadow:
+      0 1px 2px rgba(26, 22, 19, 0.04),
+      0 30px 80px -20px rgba(26, 22, 19, 0.12);
+  }
+
+  /* Subtle color washes */
+  .diagram::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 8% 4%, rgba(221, 85, 34, 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 500px 400px at 95% 98%, rgba(45, 68, 88, 0.035) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .diagram > * { position: relative; z-index: 1; }
+
+  /* -------- HEADER -------- */
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 36px;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-peach);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--accent-peach);
+  }
+
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 62px;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 0.98;
+    color: var(--text-primary);
+    font-variation-settings: "opsz" 144;
+  }
+
+  .header h1 .italic {
+    font-style: italic;
+    font-weight: 400;
+    font-variation-settings: "opsz" 144;
+  }
+
+  .header h1 .em {
+    color: var(--accent-peach);
+  }
+
+  .meta {
+    text-align: right;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    line-height: 2;
+  }
+
+  .meta strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .meta .version {
+    display: inline-block;
+    padding: 3px 9px;
+    background: var(--text-primary);
+    color: var(--surface-primary);
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+  }
+
+  /* -------- LEAD -------- */
+  .lead {
+    max-width: 820px;
+    font-size: 17.5px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  .lead strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* -------- LEGEND -------- */
+  .legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 48px;
+    background: var(--surface-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 20px 26px;
+  }
+
+  .legend-item + .legend-item {
+    border-left: 1px solid var(--border);
+  }
+
+  .legend-marker {
+    width: 4px;
+    height: 40px;
+    border-radius: 0;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .legend-marker.auto { background: var(--accent-peach); }
+  .legend-marker.hugo { background: var(--accent-slate); }
+
+  .legend-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .legend-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .legend-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 2px 0 2px;
+  }
+
+  .legend-desc {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* -------- SWIMLANES -------- */
+  .lanes {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 52px;
+  }
+
+  .lane {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lane::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+
+  .lane.automated::before { background: var(--accent-peach); }
+  .lane.hugo-lane::before { background: var(--accent-slate); }
+
+  .lane-header {
+    padding: 30px 28px;
+    background: var(--surface-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+
+  .lane.automated .lane-header {
+    background: linear-gradient(135deg, var(--accent-peach-soft) 0%, #FCEEE2 100%);
+  }
+
+  .lane.hugo-lane .lane-header {
+    background: linear-gradient(135deg, var(--accent-slate-soft) 0%, #EBF1F6 100%);
+  }
+
+  .lane-number {
+    font-family: 'Fraunces', serif;
+    font-size: 56px;
+    font-weight: 400;
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+    font-variation-settings: "opsz" 144;
+  }
+
+  .lane.automated .lane-number {
+    color: var(--accent-peach);
+  }
+
+  .lane.hugo-lane .lane-number {
+    color: var(--accent-slate);
+  }
+
+  .lane-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+  }
+
+  .lane-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  /* Pipeline */
+  .pipeline {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+    align-items: stretch;
+    gap: 0;
+    padding: 22px 28px;
+  }
+
+  .node {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 16px 18px 14px;
+    background: var(--surface-primary);
+    border: 1px solid var(--border);
+    min-height: 88px;
+    justify-content: center;
+    position: relative;
+  }
+
+  .node-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .node-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+  }
+
+  .node-sub {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    line-height: 1.35;
+  }
+
+  /* Terminal nodes (output) */
+  .node.terminal {
+    border-width: 1px;
+  }
+
+  .lane.automated .node.terminal {
+    background: var(--accent-peach);
+    border-color: var(--accent-peach);
+  }
+
+  .lane.automated .node.terminal .node-label,
+  .lane.automated .node.terminal .node-sub,
+  .lane.automated .node.terminal .node-tag {
+    color: #FFFFFF;
+  }
+
+  .lane.automated .node.terminal .node-sub { color: rgba(255, 255, 255, 0.88); }
+  .lane.automated .node.terminal .node-tag { color: rgba(255, 255, 255, 0.72); }
+
+  .lane.hugo-lane .node.terminal {
+    background: var(--accent-slate);
+    border-color: var(--accent-slate);
+  }
+
+  .lane.hugo-lane .node.terminal .node-label,
+  .lane.hugo-lane .node.terminal .node-sub,
+  .lane.hugo-lane .node.terminal .node-tag {
+    color: #FFFFFF;
+  }
+
+  .lane.hugo-lane .node.terminal .node-sub { color: rgba(255, 255, 255, 0.88); }
+  .lane.hugo-lane .node.terminal .node-tag { color: rgba(255, 255, 255, 0.72); }
+
+  /* Arrow */
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+  }
+
+  .arrow svg {
+    width: 22px;
+    height: 14px;
+    display: block;
+  }
+
+  .lane.automated .arrow { color: var(--accent-peach-border); }
+  .lane.hugo-lane .arrow { color: var(--accent-slate-border); }
+
+  /* -------- SIGNALS -------- */
+  .signals {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0;
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .signals-header {
+    padding: 30px 28px;
+    background: var(--surface-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .signals-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .signals-title {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 500;
+    font-style: italic;
+    line-height: 1.1;
+    color: var(--text-primary);
+    font-variation-settings: "opsz" 144;
+  }
+
+  .signals-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 26px 28px;
+    gap: 0;
+  }
+
+  .signal-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 18px;
+    border-left: 1px solid var(--border);
+    position: relative;
+  }
+
+  .signal-item:first-child {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .signal-score {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--accent-peach);
+    font-variation-settings: "opsz" 144;
+    letter-spacing: -0.03em;
+  }
+
+  .signal-score.small {
+    font-size: 18px;
+    line-height: 1.8;
+    letter-spacing: 0;
+  }
+
+  .signal-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+  }
+
+  .signal-desc {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    line-height: 1.35;
+    font-weight: 400;
+  }
+
+  /* -------- FOOTER -------- */
+  .footer {
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  .footer-col strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .footer-col.right { text-align: right; }
+  .footer-col.center { text-align: center; }
+
+  .footer-dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-peach);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<div class="diagram">
+
+  <header class="header">
+    <div>
+      <div class="eyebrow">Strategic Architecture</div>
+      <h1>Peach Outbound<br><span class="italic em">Pull System</span></h1>
+    </div>
+    <div class="meta">
+      <div>Approved <strong>Apr 10 · 2026</strong></div>
+      <div>Four Plays · Two Lanes</div>
+      <div><span class="version">REV 1.0</span></div>
+    </div>
+  </header>
+
+  <p class="lead">
+    Instead of blasting a static list, we map the entire market and only reach out when companies show they're in-market. <strong>Four input sources, two delivery lanes.</strong> High-volume segments (fintech lenders, banks and credit unions) flow through an automated outreach pipeline. Lower-volume segments (Salesforce accounts, website visitors) route to Hugo for high-touch manual outreach.
+  </p>
+
+  <!-- Lane type legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-marker auto"></div>
+      <div class="legend-content">
+        <div class="legend-label">Lane Type A</div>
+        <div class="legend-title">Automated Outreach</div>
+        <div class="legend-desc">Signal fires. The system finds verified contacts, writes personalized outreach, and sends it. Zero manual steps.</div>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-marker hugo"></div>
+      <div class="legend-content">
+        <div class="legend-label">Lane Type B</div>
+        <div class="legend-title">Hugo Alert Lane</div>
+        <div class="legend-desc">Signal fires. Slack alert to Hugo with company context and key contacts. Hugo handles outreach his way.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LANES ============ -->
+  <div class="lanes">
+
+    <!-- PLAY 1 — FINTECH TAM (AUTOMATED) -->
+    <div class="lane automated">
+      <div class="lane-header">
+        <div class="lane-number">01</div>
+        <div class="lane-title">Fintech TAM</div>
+        <div class="lane-badge">Automated Lane</div>
+      </div>
+      <div class="pipeline">
+        <div class="node">
+          <span class="node-tag">Source</span>
+          <span class="node-label">646 Lenders</span>
+          <span class="node-sub">Mapped US fintech TAM</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="node">
+          <span class="node-tag">Detect</span>
+          <span class="node-label">Market Watch</span>
+          <span class="node-sub">Daily signal scan</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node">
+          <span class="node-tag">Process</span>
+          <span class="node-label">Enrich + Personalize</span>
+          <span class="node-sub">Find contacts, tailor copy</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node terminal">
+          <span class="node-tag">Deliver</span>
+          <span class="node-label">Auto-Send</span>
+          <span class="node-sub">Personalized sequence out</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAY 2 — BANKS + CREDIT UNIONS (AUTOMATED) -->
+    <div class="lane automated">
+      <div class="lane-header">
+        <div class="lane-number">02</div>
+        <div class="lane-title">Banks &amp; Credit Unions</div>
+        <div class="lane-badge">Automated Lane</div>
+      </div>
+      <div class="pipeline">
+        <div class="node">
+          <span class="node-tag">Source</span>
+          <span class="node-label">Bank List</span>
+          <span class="node-sub">2,184 banks + 466 CUs</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node">
+          <span class="node-tag">Detect</span>
+          <span class="node-label">Market Watch</span>
+          <span class="node-sub">Daily signal scan</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node">
+          <span class="node-tag">Process</span>
+          <span class="node-label">Enrich + Personalize</span>
+          <span class="node-sub">Find contacts, tailor copy</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node terminal">
+          <span class="node-tag">Deliver</span>
+          <span class="node-label">Auto-Send</span>
+          <span class="node-sub">Personalized sequence out</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAY 3 — SALESFORCE CRM (HUGO) -->
+    <div class="lane hugo-lane">
+      <div class="lane-header">
+        <div class="lane-number">03</div>
+        <div class="lane-title">Salesforce CRM</div>
+        <div class="lane-badge">Hugo Lane</div>
+      </div>
+      <div class="pipeline">
+        <div class="node">
+          <span class="node-tag">Source</span>
+          <span class="node-label">SF Accounts</span>
+          <span class="node-sub">Existing pipeline</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node">
+          <span class="node-tag">Detect</span>
+          <span class="node-label">Market Watch</span>
+          <span class="node-sub">Daily signal scan</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node">
+          <span class="node-tag">Route</span>
+          <span class="node-label">Slack Alert</span>
+          <span class="node-sub">Company context + contacts</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node terminal">
+          <span class="node-tag">Deliver</span>
+          <span class="node-label">Hugo</span>
+          <span class="node-sub">Manual outreach</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAY 4 — WEBSITE VISITORS (HUGO) -->
+    <div class="lane hugo-lane">
+      <div class="lane-header">
+        <div class="lane-number">04</div>
+        <div class="lane-title">Website Visitors</div>
+        <div class="lane-badge">Hugo Lane</div>
+      </div>
+      <div class="pipeline">
+        <div class="node">
+          <span class="node-tag">Source</span>
+          <span class="node-label">Site Traffic</span>
+          <span class="node-sub">peachfinance.com</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node">
+          <span class="node-tag">Detect</span>
+          <span class="node-label">Apollo API</span>
+          <span class="node-sub">Real-time company ID</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node">
+          <span class="node-tag">Route</span>
+          <span class="node-label">Slack Alert</span>
+          <span class="node-sub">Company context + contacts</span>
+        </div>
+        <div class="arrow">
+          <svg viewBox="0 0 22 14" fill="none"><path d="M0 7H19M15 2L20 7L15 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="node terminal">
+          <span class="node-tag">Deliver</span>
+          <span class="node-label">Hugo</span>
+          <span class="node-sub">Manual outreach</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ============ /LANES ============ -->
+
+  <!-- SIGNAL SCORING -->
+  <div class="signals">
+    <div class="signals-header">
+      <div class="signals-eyebrow">Signal Scoring</div>
+      <div class="signals-title">What fires<br>an alert</div>
+    </div>
+    <div class="signals-grid">
+      <div class="signal-item">
+        <span class="signal-score">5</span>
+        <span class="signal-label">Lending Hire</span>
+        <span class="signal-desc">Eng or product role with lending keywords. Strongest signal.</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-score">3</span>
+        <span class="signal-label">Funding Round</span>
+        <span class="signal-desc">Capital available, but doesn't confirm a lending build.</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-score">2</span>
+        <span class="signal-label">Product Launch</span>
+        <span class="signal-desc">Press release or new feature. Timing context.</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-score small">High Intent</span>
+        <span class="signal-label">Website Visit</span>
+        <span class="signal-desc">Apollo-identified company on peachfinance.com.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-col">
+      <div><span class="footer-dot"></span>Activates <strong>Apr 17 · 2026</strong></div>
+      <div>Orangeslice credit reset</div>
+    </div>
+    <div class="footer-col center">
+      <div>Concept Outbound</div>
+      <div>for <strong>Peach Finance</strong></div>
+    </div>
+    <div class="footer-col right">
+      <div>Prepared by <strong>Travis Ross</strong></div>
+      <div>Apr 10 · 2026</div>
+    </div>
+  </footer>
+
+</div>
+
+</body>
+</html>
+</content>
+</invoke>
